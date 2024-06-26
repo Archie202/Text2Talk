@@ -19,15 +19,17 @@
             </div>
             <div class="settings">
                 <label for="voiceSelect">Voice:</label>
-                <select id="voiceSelect"></select>
+                <select id="voiceSelect" onchange="previewVoice()"></select>
             </div>
             <div class="settings">
                 <label for="pitch">Pitch:</label>
-                <input type="range" id="pitch" min="0" max="2" value="1" step="0.1">
+                <input type="range" id="pitch" min="0" max="2" value="1" step="0.1" onchange="updatePitch(this.value)">
+                <span id="pitchValue">100%</span>
             </div>
             <div class="settings">
                 <label for="rate">Rate:</label>
-                <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
+                <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1" onchange="updateRate(this.value)">
+                <span id="rateValue">100%</span>
             </div>
             <button id="previewButton" onclick="previewVoice()">Preview Voice</button>
             <button id="generateButton" onclick="generateSpeech()">Generate Speech</button>
