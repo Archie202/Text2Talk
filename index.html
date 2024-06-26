@@ -3,215 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text to Speech</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-        #textArea {
-            width: 100%;
-            height: 200px;
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        #settings {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-        .setting {
-            margin: 0 10px;
-        }
-        select, input[type="range"] {
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            outline: none;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        select:focus, input[type="range"]:focus {
-            border-color: #007BFF;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:active {
-            transform: scale(0.95);
-        }
-        #audioContainer {
-            display: none;
-            margin-top: 20px;
-        }
-    </style>
+    <title>SpeakEasy - Text to Speech</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Text to Speech</h1>
-    <div id="settings">
-        <select id="languageSelect" class="setting"></select>
-        <select id="voiceSelect" class="setting"></select>
-        <div class="setting">
-            <label for="pitch">Pitch:</label>
-            <input type="range" id="pitch" min="0" max="2" value="1" step="0.1">
+    <header>
+        <h1>SpeakEasy</h1>
+    </header>
+    <main>
+        <div class="controls">
+            <textarea id="textArea" placeholder="Type your text here..."></textarea>
+            <div class="settings">
+                <label for="languageSelect">Language:</label>
+                <select id="languageSelect"></select>
+            </div>
+            <div class="settings">
+                <label for="voiceSelect">Voice:</label>
+                <select id="voiceSelect"></select>
+            </div>
+            <div class="settings">
+                <label for="pitch">Pitch:</label>
+                <input type="range" id="pitch" min="0" max="2" value="1" step="0.1">
+            </div>
+            <div class="settings">
+                <label for="rate">Rate:</label>
+                <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
+            </div>
+            <button id="previewButton" onclick="previewVoice()">Preview Voice</button>
+            <button id="generateButton" onclick="generateSpeech()">Generate Speech</button>
+            <div id="audioContainer">
+                <audio id="audioPlayer" controls></audio><br>
+                <button id="playButton" onclick="playAudio()">Play</button>
+                <button id="downloadButton" onclick="downloadAudio()">Download MP3</button>
+            </div>
         </div>
-        <div class="setting">
-            <label for="rate">Rate:</label>
-            <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
-        </div>
-    </div>
-    <textarea id="textArea" placeholder="Type your text here..."></textarea><br>
-    <button id="previewButton" onclick="previewVoice()">Preview Voice</button>
-    <button id="generateButton" onclick="generateSpeech()">Generate Speech</button>
-    <div id="audioContainer">
-        <audio id="audioPlayer" controls></audio><br>
-        <button id="playButton" onclick="playAudio()">Play</button>
-        <button id="downloadButton" onclick="downloadAudio()">Download MP3</button>
-    </div>
-
-    <script>
-        const synth = window.speechSynthesis;
-        const languageSelect = document.getElementById('languageSelect');
-        const voiceSelect = document.getElementById('voiceSelect');
-        const pitch = document.getElementById('pitch');
-        const rate = document.getElementById('rate');
-        const textArea = document.getElementById('textArea');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const audioContainer = document.getElementById('audioContainer');
-        let voices = [];
-        let mediaRecorder;
-        let audioChunks = [];
-        let audioBlob;
-
-        function populateVoiceList() {
-            voices = synth.getVoices();
-            const languageMap = new Map();
-            voices.forEach((voice) => {
-                const lang = voice.lang;
-                if (!languageMap.has(lang)) {
-                    languageMap.set(lang, []);
-                }
-                languageMap.get(lang).push(voice);
-            });
-
-            languageSelect.innerHTML = '';
-            voiceSelect.innerHTML = '';
-            languageMap.forEach((voiceList, lang) => {
-                const option = document.createElement('option');
-                option.textContent = lang;
-                option.value = lang;
-                languageSelect.appendChild(option);
-            });
-
-            languageSelect.addEventListener('change', updateVoiceList);
-            updateVoiceList();
-        }
-
-        function updateVoiceList() {
-            const selectedLanguage = languageSelect.value;
-            voiceSelect.innerHTML = '';
-            voices.forEach((voice) => {
-                if (voice.lang === selectedLanguage) {
-                    const option = document.createElement('option');
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    option.value = voice.name;
-                    voiceSelect.appendChild(option);
-                }
-            });
-        }
-
-        populateVoiceList();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
-
-        function previewVoice() {
-            if (synth.speaking) {
-                console.error('Already speaking');
-                return;
-            }
-            const sampleText = "This is a voice preview.";
-            const utterThis = new SpeechSynthesisUtterance(sampleText);
-            const selectedVoice = voices.find(voice => voice.name === voiceSelect.value);
-            utterThis.voice = selectedVoice;
-            utterThis.pitch = pitch.value;
-            utterThis.rate = rate.value;
-            synth.speak(utterThis);
-        }
-
-        function generateSpeech() {
-            if (synth.speaking) {
-                console.error('Already speaking');
-                return;
-            }
-            if (textArea.value !== '') {
-                const utterThis = new SpeechSynthesisUtterance(textArea.value);
-                const selectedVoice = voices.find(voice => voice.name === voiceSelect.value);
-                utterThis.voice = selectedVoice;
-                utterThis.pitch = pitch.value;
-                utterThis.rate = rate.value;
-
-                const stream = new MediaStream();
-                const audioContext = new AudioContext();
-                const destination = audioContext.createMediaStreamDestination();
-                const source = audioContext.createMediaStreamSource(destination.stream);
-                source.connect(audioContext.destination);
-
-                mediaRecorder = new MediaRecorder(destination.stream);
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    audioPlayer.src = audioUrl;
-                    audioContainer.style.display = 'block';
-                    audioChunks = [];
-                };
-
-                mediaRecorder.start();
-                synth.speak(utterThis);
-
-                utterThis.onend = () => {
-                    mediaRecorder.stop();
-                };
-            }
-        }
-
-        function playAudio() {
-            if (audioPlayer.src) {
-                audioPlayer.play();
-            } else {
-                console.error('No audio to play');
-            }
-        }
-
-        function downloadAudio() {
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const a = document.createElement('a');
-            a.href = audioUrl;
-            a.download = 'speech.mp3';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-    </script>
+    </main>
+    <script src="script.js"></script>
 </body>
 </html>
