@@ -1,18 +1,14 @@
-// Variables to store pitch and rate values
 let pitchValue = 1.0;
 let rateValue = 1.0;
-let voices = []; // Array to store available voices
+let voices = [];
 
-// Function to initialize the webpage
 function initialize() {
     populateLanguages();
-    populateVoices();
     setupEventListeners();
 }
 
-// Function to populate language select dropdown (dummy function)
 function populateLanguages() {
-    const languages = ['English', 'Spanish', 'French']; // Example languages
+    const languages = ['English', 'Spanish', 'French'];
     const languageSelect = document.getElementById('languageSelect');
     languages.forEach(language => {
         const option = document.createElement('option');
@@ -22,7 +18,6 @@ function populateLanguages() {
     });
 }
 
-// Function to populate voice select dropdown
 function populateVoices() {
     voices = speechSynthesis.getVoices();
     const voiceSelect = document.getElementById('voiceSelect');
@@ -34,21 +29,18 @@ function populateVoices() {
     });
 }
 
-// Function to update pitch value
 function updatePitch(value) {
-    pitchValue = parseFloat(value).toFixed(1); // Ensure value is a float with 1 decimal place
+    pitchValue = parseFloat(value).toFixed(1);
     document.getElementById('pitchValue').textContent = `${(pitchValue * 100).toFixed(0)}%`;
 }
 
-// Function to update rate value
 function updateRate(value) {
-    rateValue = parseFloat(value).toFixed(1); // Ensure value is a float with 1 decimal place
+    rateValue = parseFloat(value).toFixed(1);
     document.getElementById('rateValue').textContent = `${(rateValue * 100).toFixed(0)}%`;
 }
 
-// Function to preview voice with current settings
 function previewVoice() {
-    const text = 'Hello, this is a test sentence.'; // Test sentence for preview
+    const text = 'Hello, this is a test sentence.';
     const language = document.getElementById('languageSelect').value;
     const voiceIndex = document.getElementById('voiceSelect').value;
     const selectedVoice = voices[parseInt(voiceIndex)];
@@ -59,11 +51,10 @@ function previewVoice() {
     utterance.rate = rateValue;
     utterance.voice = selectedVoice;
 
-    speechSynthesis.cancel(); // Stop any previous speech
+    speechSynthesis.cancel();
     speechSynthesis.speak(utterance);
 }
 
-// Function to generate speech and create audio element
 function generateSpeech() {
     const text = document.getElementById('textArea').value.trim();
     if (text === '') {
@@ -81,24 +72,21 @@ function generateSpeech() {
     utterance.rate = rateValue;
     utterance.voice = selectedVoice;
 
-    speechSynthesis.cancel(); // Stop any previous speech
+    speechSynthesis.cancel();
     speechSynthesis.speak(utterance);
 
-    // Display audio player and set audio source
     const audioContainer = document.getElementById('audioContainer');
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.src = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(utterance)], { type: 'text/xml' }));
 
-    audioContainer.style.display = 'block'; // Show audio player
+    audioContainer.style.display = 'block';
 }
 
-// Function to play generated audio
 function playAudio() {
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.play();
 }
 
-// Function to download generated audio as MP3
 function downloadAudio() {
     const audioPlayer = document.getElementById('audioPlayer');
     const audioUrl = audioPlayer.src;
@@ -110,7 +98,6 @@ function downloadAudio() {
     document.body.removeChild(link);
 }
 
-// Function to setup event listeners for pitch and rate sliders
 function setupEventListeners() {
     const pitchSlider = document.getElementById('pitch');
     const rateSlider = document.getElementById('rate');
@@ -122,6 +109,11 @@ function setupEventListeners() {
     rateSlider.addEventListener('input', function() {
         updateRate(this.value);
     });
+
+    // Wait for voices to be loaded before populating voice options
+    speechSynthesis.onvoiceschanged = function() {
+        populateVoices();
+    };
 }
 
 // Initialize the webpage
