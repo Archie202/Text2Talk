@@ -25,12 +25,16 @@ function populateLanguages() {
 // Function to populate voice select dropdown (dummy function)
 function populateVoices() {
     // Example: Dummy function to populate voice options
-    const voices = ['Male Voice 1', 'Female Voice 1', 'Male Voice 2']; // Example voices
+    const voices = [
+        { name: 'Male Voice 1', lang: 'en-US', pitch: 1.0, rate: 1.0 },
+        { name: 'Female Voice 1', lang: 'en-US', pitch: 1.0, rate: 1.0 },
+        { name: 'Male Voice 2', lang: 'en-US', pitch: 1.5, rate: 0.8 }
+    ]; // Example voices
     const voiceSelect = document.getElementById('voiceSelect');
-    voices.forEach(voice => {
+    voices.forEach((voice, index) => {
         const option = document.createElement('option');
-        option.textContent = voice;
-        option.value = voice.toLowerCase().replace(/\s/g, '-');
+        option.textContent = voice.name;
+        option.value = index.toString();
         voiceSelect.appendChild(option);
     });
 }
@@ -38,29 +42,27 @@ function populateVoices() {
 // Function to update pitch value
 function updatePitch(value) {
     pitchValue = parseFloat(value).toFixed(1); // Ensure value is a float with 1 decimal place
+    document.getElementById('pitchValue').textContent = `${(pitchValue * 100).toFixed(0)}%`;
 }
 
 // Function to update rate value
 function updateRate(value) {
     rateValue = parseFloat(value).toFixed(1); // Ensure value is a float with 1 decimal place
+    document.getElementById('rateValue').textContent = `${(rateValue * 100).toFixed(0)}%`;
 }
 
 // Function to preview voice with current settings
 function previewVoice() {
-    const text = document.getElementById('textArea').value.trim();
-    if (text === '') {
-        alert('Please enter some text to preview.');
-        return;
-    }
-
+    const text = 'Hello, this is a test sentence.'; // Test sentence for preview
     const language = document.getElementById('languageSelect').value;
-    const voice = document.getElementById('voiceSelect').value;
+    const voiceIndex = document.getElementById('voiceSelect').value;
+    const selectedVoice = voices[parseInt(voiceIndex)];
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language;
-    utterance.pitch = pitchValue;
-    utterance.rate = rateValue;
-    utterance.voice = speechSynthesis.getVoices().find(v => v.name.toLowerCase().replace(/\s/g, '-') === voice);
+    utterance.lang = selectedVoice.lang;
+    utterance.pitch = selectedVoice.pitch;
+    utterance.rate = selectedVoice.rate;
+    utterance.voice = speechSynthesis.getVoices().find(v => v.name === selectedVoice.name);
 
     speechSynthesis.cancel(); // Stop any previous speech
     speechSynthesis.speak(utterance);
@@ -75,13 +77,14 @@ function generateSpeech() {
     }
 
     const language = document.getElementById('languageSelect').value;
-    const voice = document.getElementById('voiceSelect').value;
+    const voiceIndex = document.getElementById('voiceSelect').value;
+    const selectedVoice = voices[parseInt(voiceIndex)];
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language;
+    utterance.lang = selectedVoice.lang;
     utterance.pitch = pitchValue;
     utterance.rate = rateValue;
-    utterance.voice = speechSynthesis.getVoices().find(v => v.name.toLowerCase().replace(/\s/g, '-') === voice);
+    utterance.voice = speechSynthesis.getVoices().find(v => v.name === selectedVoice.name);
 
     speechSynthesis.cancel(); // Stop any previous speech
     speechSynthesis.speak(utterance);
