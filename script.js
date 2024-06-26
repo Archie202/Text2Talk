@@ -1,17 +1,17 @@
 // Variables to store pitch and rate values
 let pitchValue = 1.0;
 let rateValue = 1.0;
+let voices = []; // Array to store available voices
 
 // Function to initialize the webpage
 function initialize() {
-    // Populate language and voice options (adjust according to your needs)
     populateLanguages();
     populateVoices();
+    setupEventListeners();
 }
 
 // Function to populate language select dropdown (dummy function)
 function populateLanguages() {
-    // Example: Dummy function to populate language options
     const languages = ['English', 'Spanish', 'French']; // Example languages
     const languageSelect = document.getElementById('languageSelect');
     languages.forEach(language => {
@@ -22,14 +22,9 @@ function populateLanguages() {
     });
 }
 
-// Function to populate voice select dropdown (dummy function)
+// Function to populate voice select dropdown
 function populateVoices() {
-    // Example: Dummy function to populate voice options
-    const voices = [
-        { name: 'Male Voice 1', lang: 'en-US', pitch: 1.0, rate: 1.0 },
-        { name: 'Female Voice 1', lang: 'en-US', pitch: 1.0, rate: 1.0 },
-        { name: 'Male Voice 2', lang: 'en-US', pitch: 1.5, rate: 0.8 }
-    ]; // Example voices
+    voices = speechSynthesis.getVoices();
     const voiceSelect = document.getElementById('voiceSelect');
     voices.forEach((voice, index) => {
         const option = document.createElement('option');
@@ -59,10 +54,10 @@ function previewVoice() {
     const selectedVoice = voices[parseInt(voiceIndex)];
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedVoice.lang;
-    utterance.pitch = selectedVoice.pitch;
-    utterance.rate = selectedVoice.rate;
-    utterance.voice = speechSynthesis.getVoices().find(v => v.name === selectedVoice.name);
+    utterance.lang = language;
+    utterance.pitch = pitchValue;
+    utterance.rate = rateValue;
+    utterance.voice = selectedVoice;
 
     speechSynthesis.cancel(); // Stop any previous speech
     speechSynthesis.speak(utterance);
@@ -81,10 +76,10 @@ function generateSpeech() {
     const selectedVoice = voices[parseInt(voiceIndex)];
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedVoice.lang;
+    utterance.lang = language;
     utterance.pitch = pitchValue;
     utterance.rate = rateValue;
-    utterance.voice = speechSynthesis.getVoices().find(v => v.name === selectedVoice.name);
+    utterance.voice = selectedVoice;
 
     speechSynthesis.cancel(); // Stop any previous speech
     speechSynthesis.speak(utterance);
@@ -113,6 +108,20 @@ function downloadAudio() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+// Function to setup event listeners for pitch and rate sliders
+function setupEventListeners() {
+    const pitchSlider = document.getElementById('pitch');
+    const rateSlider = document.getElementById('rate');
+
+    pitchSlider.addEventListener('input', function() {
+        updatePitch(this.value);
+    });
+
+    rateSlider.addEventListener('input', function() {
+        updateRate(this.value);
+    });
 }
 
 // Initialize the webpage
